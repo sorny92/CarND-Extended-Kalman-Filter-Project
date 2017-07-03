@@ -29,6 +29,8 @@ public:
   */
   MatrixXd CalculateJacobian(const VectorXd& x_state);
 
+  int returnNumberPlus2(int number);
+
 };
 
 #endif /* TOOLS_H_ */
