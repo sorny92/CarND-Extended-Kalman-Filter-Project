@@ -1,5 +1,4 @@
 #include "kalman_filter.h"
-#include "tools.h"
 #include <iostream>
 
 using Eigen::MatrixXd;
@@ -9,20 +8,43 @@ KalmanFilter::KalmanFilter() {}
 
 KalmanFilter::~KalmanFilter() {}
 
-void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
-                        MatrixXd &H_in, MatrixXd &R_in, MatrixXd &Q_in) {
-  x_ = x_in;
-  P_ = P_in;
-  F_ = F_in;
-  H_ = H_in;
-  R_ = R_in;
-  Q_ = Q_in;
+void KalmanFilter::Init() {
+  
+ //create a 4D state vector, we don't know yet the values of the x state
+	x_ = VectorXd(4);
+
+	//state covariance matrix P
+	P_ = MatrixXd(4, 4);
+	P_ << 1, 0, 0, 0,
+			  0, 1, 0, 0,
+			  0, 0, 1000, 0,
+			  0, 0, 0, 1000;
+
+
+	//measurement covariance
+	R_ = MatrixXd(2, 2);
+	R_ << 0.0225, 0,
+			  0, 0.0225;
+
+	//measurement matrix
+	H_ = MatrixXd(2, 4);
+	H_ << 1, 0, 0, 0,
+			  0, 1, 0, 0;
+
+	//the initial transition matrix F_
+	F_ = MatrixXd(4, 4);
+	F_ << 1, 0, 1, 0,
+			  0, 1, 0, 1,
+			  0, 0, 1, 0,
+			  0, 0, 0, 1;
+  
+  Q_ = MatrixXd(4,4);
 }
 
 void KalmanFilter::Predict() {
-  x_ = F*x_;
+  x_ = F_*x_;
   MatrixXd F_transpose = F_.transpose();
-  P_ = F_*P_*F_transpose;
+  P_ = F_*P_*F_transpose + Q_;
 }
 
 void KalmanFilter::Update(const VectorXd &z) {
@@ -32,7 +54,7 @@ void KalmanFilter::Update(const VectorXd &z) {
   MatrixXd S_inv = S.inverse();
   MatrixXd K = P_*H_transpose*S_inv;
   x_ = x_ + (K*y);
-  MatrixXd I;
+  MatrixXd I = MatrixXd(3,3);
   I << 1, 0, 0,
        0, 1, 0,
        0, 0, 1;
@@ -40,14 +62,18 @@ void KalmanFilter::Update(const VectorXd &z) {
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
-  MatrixXd Hj = CalculateJacobian(x_);
-  VectorXd y = z - Hj*x_;
+  MatrixXd Hj = tools.CalculateJacobian(x_);
+  std::cout << Hj << endl;
+  std::cout << x_ << endl;
+  std::cout << z << endl;
+  VectorXd z_p = Hj*x_;
+  VectorXd y = z - z_p;
   MatrixXd Hj_transpose = Hj.transpose();
   MatrixXd S = Hj*P_*Hj_transpose + R_;
   MatrixXd S_inv = S.inverse();
   MatrixXd K = P_*Hj_transpose*S_inv;
   x_ = x_ + (K*y);
-  MatrixXd I;
+  MatrixXd I = MatrixXd(3,3);
   I << 1, 0, 0,
        0, 1, 0,
        0, 0, 1;
