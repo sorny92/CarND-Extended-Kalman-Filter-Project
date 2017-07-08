@@ -12,6 +12,7 @@ void KalmanFilter::Init() {
   
  //create a 4D state vector, we don't know yet the values of the x state
 	x_ = VectorXd(4);
+  Q_ = MatrixXd(4,4);
 
 	//state covariance matrix P
 	P_ = MatrixXd(4, 4);
@@ -37,8 +38,6 @@ void KalmanFilter::Init() {
 			  0, 1, 0, 1,
 			  0, 0, 1, 0,
 			  0, 0, 0, 1;
-  
-  Q_ = MatrixXd(4,4);
 }
 
 void KalmanFilter::Predict() {
@@ -48,16 +47,18 @@ void KalmanFilter::Predict() {
 }
 
 void KalmanFilter::Update(const VectorXd &z) {
-  VectorXd y = z - H_*x_;
+  VectorXd z_p = H_*x_;
+  VectorXd y = z - z_p;
   MatrixXd H_transpose = H_.transpose();
   MatrixXd S = H_*P_*H_transpose + R_;
   MatrixXd S_inv = S.inverse();
   MatrixXd K = P_*H_transpose*S_inv;
   x_ = x_ + (K*y);
-  MatrixXd I = MatrixXd(3,3);
-  I << 1, 0, 0,
-       0, 1, 0,
-       0, 0, 1;
+  MatrixXd I = MatrixXd(4,4);
+  I << 1,0,0,0,
+       0,1,0,0, 
+       0,0,1,0,
+       0,0,0,1;
   P_ = (I - K*H_)*P_;
 }
 
@@ -67,7 +68,7 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   std::cout << x_ << endl;
   VectorXd z_p = Hj*x_;
   std::cout << z_p << endl;
-  VectorXd y = Hj*z - z_p;
+  VectorXd y = z - z_p;
   std::cout << y << endl;
   MatrixXd Hj_transpose = Hj.transpose();
   MatrixXd S = Hj*P_*Hj_transpose + R_;
