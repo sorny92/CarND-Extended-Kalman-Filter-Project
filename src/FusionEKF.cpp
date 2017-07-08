@@ -52,7 +52,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   if (!is_initialized_) {
     /**
     TODO:
-      * Initialize the state ekf_.x_ with the first measurement.
       * Create the covariance matrix.
       * Remember: you'll need to convert radar from polar to cartesian coordinates.
     */
@@ -91,14 +90,14 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   float time_elapsed_3 = time_elapsed_2*time_elapsed;
   float time_elapsed_4 = time_elapsed_2*time_elapsed_2;
 
-/*  ekf_.Q_ << (time_elapsed_4/4)*noise_ax, 0, (time_elapsed_3/2)*noise_ax, 0,
+  ekf_.Q_ << (time_elapsed_4/4)*noise_ax, 0, (time_elapsed_3/2)*noise_ax, 0,
             0, (time_elapsed_4/4)*noise_ay, 0, (time_elapsed_3/2)*noise_ay,
             (time_elapsed_3/2)*noise_ax, 0, time_elapsed_2*noise_ax, 0,
-            0, (time_elapsed_3/2)*noise_ay, 0, time_elapsed_2*noise_ay;*/
-  ekf_.Q_ << 1, 1, 1, 1,
+            0, (time_elapsed_3/2)*noise_ay, 0, time_elapsed_2*noise_ay;
+  /*ekf_.Q_ << 1, 1, 1, 1,
             1, 1, 1, 1,
             1, 1, 1, 1,
-            1, 1, 1, 1;
+            1, 1, 1, 1;*/
 
   ekf_.F_ << 1, 0, time_elapsed, 0,
              0, 1, 0, time_elapsed,
