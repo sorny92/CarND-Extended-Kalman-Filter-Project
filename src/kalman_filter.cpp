@@ -38,6 +38,15 @@ void KalmanFilter::Init() {
 			  0, 1, 0, 1,
 			  0, 0, 1, 0,
 			  0, 0, 0, 1;
+
+  //Identity matrix initialized
+  I = MatrixXd(4,4);
+  I << 1,0,0,0,
+       0,1,0,0, 
+       0,0,1,0,
+       0,0,0,1;
+
+  Hx_ = VectorXd(3);
 }
 
 void KalmanFilter::Predict() {
@@ -63,22 +72,17 @@ void KalmanFilter::Update(const VectorXd &z) {
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
+  std:cout << x_ << "\n\n" << endl;
   MatrixXd Hj = tools.CalculateJacobian(x_);
-  std::cout << Hj << endl;
-  std::cout << x_ << endl;
-  VectorXd z_p = Hj*x_;
-  std::cout << z_p << endl;
-  VectorXd y = z - z_p;
-  std::cout << y << endl;
+  float range = sqrt(x_[0]*x_[0] + x_[1]*x_[1]);
+  Hx_ << range,
+         atan(x_[1]/x_[0]),
+         (x_[0]*x_[2] + x_[1]*x_[3])/range;
+  VectorXd y = z - Hx_;
   MatrixXd Hj_transpose = Hj.transpose();
   MatrixXd S = Hj*P_*Hj_transpose + R_;
   MatrixXd S_inv = S.inverse();
   MatrixXd K = P_*Hj_transpose*S_inv;
   x_ = x_ + (K*y);
-  MatrixXd I = MatrixXd(4,4);
-  I << 1,0,0,0,
-       0,1,0,0, 
-       0,0,1,0,
-       0,0,0,1;
   P_ = (I - K*Hj)*P_;
 }

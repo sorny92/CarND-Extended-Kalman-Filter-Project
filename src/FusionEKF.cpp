@@ -78,12 +78,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
      * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
    */
   
-  std::cout << measurement_pack.timestamp_ <<endl;
-  std::cout << previous_timestamp_ <<endl;
-  long noise_ax = 81;
-  long noise_ay = 81;
+  long noise_ax = 9;
+  long noise_ay = 9;
   //Convert to seconds
-  float time_elapsed = (measurement_pack.timestamp_ - previous_timestamp_)*0.000001;
+  float time_elapsed = (measurement_pack.timestamp_ - previous_timestamp_)/1000000.0;
   previous_timestamp_ = measurement_pack.timestamp_;
 
   float time_elapsed_2 = time_elapsed*time_elapsed;
@@ -94,10 +92,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
             0, (time_elapsed_4/4)*noise_ay, 0, (time_elapsed_3/2)*noise_ay,
             (time_elapsed_3/2)*noise_ax, 0, time_elapsed_2*noise_ax, 0,
             0, (time_elapsed_3/2)*noise_ay, 0, time_elapsed_2*noise_ay;
-  /*ekf_.Q_ << 1, 1, 1, 1,
-            1, 1, 1, 1,
-            1, 1, 1, 1,
-            1, 1, 1, 1;*/
 
   ekf_.F_ << 1, 0, time_elapsed, 0,
              0, 1, 0, time_elapsed,
@@ -124,8 +118,4 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     ekf_.R_ = R_laser_;
     ekf_.Update(measurement_pack.raw_measurements_);
   }
-
-  // print the output
-  cout << "x_ = " << ekf_.x_ << endl;
-  cout << "P_ = " << ekf_.P_ << endl;
 }
