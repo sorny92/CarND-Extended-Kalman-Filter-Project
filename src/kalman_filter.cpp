@@ -1,6 +1,8 @@
 #include "kalman_filter.h"
 #include <iostream>
 
+#define PI 3.14159265
+
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
@@ -72,13 +74,23 @@ void KalmanFilter::Update(const VectorXd &z) {
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
-  std:cout << x_ << "\n\n" << endl;
   MatrixXd Hj = tools.CalculateJacobian(x_);
   float range = sqrt(x_[0]*x_[0] + x_[1]*x_[1]);
+  float phi = atan2(x_[1],x_[0]);
+  if (range < 0.01 && range > 0){
+    range = 0.5;
+  } else if (range < 0 && range > 0.01){
+    range = -0.5;
+  }
   Hx_ << range,
-         atan(x_[1]/x_[0]),
+         phi,
          (x_[0]*x_[2] + x_[1]*x_[3])/range;
+  
+  // std::cout << range << endl;
+  // std::cout << z[1] << endl;
+  // std::cout << Hx_[1] << "/n" << endl;
   VectorXd y = z - Hx_;
+  y[1] = atan2(sin(y[1]), cos(y[1]));
   MatrixXd Hj_transpose = Hj.transpose();
   MatrixXd S = Hj*P_*Hj_transpose + R_;
   MatrixXd S_inv = S.inverse();
